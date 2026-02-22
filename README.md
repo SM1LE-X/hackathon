@@ -1,38 +1,40 @@
-# Local Exchange Infrastructure for Strategy Developers
+# OpenMarketSim
 
-## Project Overview
-This repository provides a local, headless exchange infrastructure for testing execution logic in a controlled environment.
+OpenMarketSim is a deterministic local exchange simulator for testing trading infrastructure, execution logic, and tournament-style workflows without live market risk.
 
-It is not a bot framework and it does not contain strategy logic in the exchange process.
+It includes:
+- a distributed exchange stack (order gateway + market data relay + multi-bot runner + monitor)
+- a tournament arena stack (session rounds over a single server endpoint)
+- CLI and Textual UIs
 
-## Why This Exists
-Strategy developers need a realistic but safe environment to validate:
-- order routing
-- queue priority behavior
-- fill quality
-- inventory impact
-- PnL and risk-side effects
+## Highlights
 
-This system offers exchange-like behavior locally, without live market risk.
+- Deterministic FIFO price-time matching.
+- Position, PnL, margin, and liquidation flows.
+- WebSocket-based components with process isolation.
+- Strategy plugin support via `module:Class`.
+- Local telemetry export to `trades.csv` and `performance.csv`.
+- Pytest coverage for engine/risk/session/tournament snippets.
 
-## Who This Is For
-- quant researchers prototyping execution logic
-- strategy developers building custom bots
-- infrastructure engineers validating market connectivity paths
-- teams running local integration tests before external deployment
+## Repository Layout
 
-## System Components
-- `exchange_server.py`: matching engine, positions, risk, liquidation, order gateway
-- `market_data_server.py`: stateless WebSocket relay for market events
-- `bot_client.py`: strategy wrapper client (plugin-based)
-- `bot_strategies.py`: built-in demo strategies + plugin loader
-- `bot_battle_runner.py`: multi-bot launcher from JSON config
-- `monitor_client.py`: read-only monitor (book, trades, derived PnL)
-- `exporter.py`: buffered CSV event exporter (`trade`, `position_update`)
-- `message_schemas.py`: shared protocol validation and message models
+- `models.py`: shared enums/dataclasses and protocol parsing.
+- `orderbook.py`, `engine.py`: matching and book behavior.
+- `positions.py`, `risk_manager.py`, `margin_risk_manager.py`: accounting and risk checks.
+- `server.py`, `session_manager.py`, `tournament_manager.py`: round/session tournament runtime.
+- `exchange_server.py`, `market_data_server.py`: distributed exchange + market data relay.
+- `bot_client.py`, `bot_strategies.py`, `bot_battle_runner.py`: multi-bot strategy runtime.
+- `monitor_client.py`, `arena_cli.py`, `arena_textual_app.py`: terminal and Textual monitoring/UI.
+- `tests/`: pytest test suite (`test_phase*_snippet.py`).
+- `web-dashboard/`: React + Vite dashboard for market-data feed.
 
-## Quick Start
-1. Install dependencies:
+## Prerequisites
+
+- Python 3.10+
+- `pip`
+- (Optional) Node.js 18+ for `web-dashboard/`
+
+## Setup
 
 ```powershell
 python -m venv .venv
@@ -40,73 +42,94 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-2. Start services:
+## Run Options
+
+### 1) Distributed Exchange Stack (Recommended)
+
+Start each in a separate terminal:
 
 ```powershell
-# Terminal 1
+# Terminal 1: exchange core
 python exchange_server.py
 
-# Terminal 2
+# Terminal 2: market data relay
 python market_data_server.py
 
-# Terminal 3
+# Terminal 3: launch bots from config
 python bot_battle_runner.py --config bots_config.json
 
-# Terminal 4
+# Terminal 4: read-only monitor
 python monitor_client.py
 ```
 
-## Demo Instructions
-Use the same 4-terminal flow above. In the monitor you should see:
-- moving top-of-book
-- trade count increasing
-- per-trader position/cash/PnL changing
-- `CONNECTED / DISCONNECTED` connectivity state
+Default endpoints:
+- Order gateway: `ws://127.0.0.1:9001`
+- Internal event stream: `ws://127.0.0.1:9002`
+- Broadcast market feed: `ws://127.0.0.1:9010`
 
-Detailed script: `DEMO_GUIDE.md`
+### 2) Tournament Arena Stack
 
-## CSV Export
-The exchange writes two append-only CSV files in the current working directory:
+Run tournament server:
+
+```powershell
+python arena_tournament.py --rounds 5 --duration 60
+```
+
+Connect terminal arena UI:
+
+```powershell
+python arena_cli.py --uri ws://localhost:8000
+```
+
+Optional sample bot for this stack:
+
+```powershell
+python bot.py --trader-id bot1 --uri ws://localhost:8000
+```
+
+### 3) Textual Arena App
+
+```powershell
+python arena_textual_app.py --rounds 5 --duration 60 --mode SIMULATION --server-status ONLINE
+```
+
+Modes:
+- `SIMULATION`
+- `LIVE`
+- `OFFLINE`
+
+## Tests
+
+```powershell
+python -m pytest -q
+python -m pytest tests/test_phase4_tournament_ux_snippet.py -q
+```
+
+## Web Dashboard (Optional)
+
+```powershell
+cd web-dashboard
+npm install
+npm run dev
+```
+
+The dashboard consumes the market-data feed at `ws://127.0.0.1:9010`.
+
+## CSV Telemetry
+
+When using `exchange_server.py`, the exporter writes append-only files:
+
 - `trades.csv`: `timestamp,price,qty,buy_trader,sell_trader`
 - `performance.csv`: `timestamp,trader_id,position,cash,realized_pnl,total_equity`
 
-Behavior:
-- headers are auto-created if files do not exist
-- rows are buffered in-memory and flushed every 500ms
-- flushing is asynchronous and does not block matching
+## Protocol and Design Docs
 
-## Architecture Summary
-- Exchange is the source of truth for matching, state, and risk.
-- Market data process only relays events.
-- Bots are independent processes and communicate only over WebSocket.
-- Monitor is subscriber-only and never submits orders.
+- `API_SPEC.md`: WebSocket message schema and endpoint contract.
+- `ARCHITECTURE.md`: component boundaries and event flow.
+- `SYSTEM_DESIGN.md`: design rationale.
+- `BOT_INTEGRATION_GUIDE.md`: custom strategy integration details.
+- `DEMO_GUIDE.md`, `WALKTHROUGH.md`: guided runtime flows.
 
-Details: `ARCHITECTURE.md` and `SYSTEM_DESIGN.md`
+## License
 
-## Key Design Principles
-- strict separation of concerns
-- deterministic matching behavior
-- process-level isolation
-- schema-first message validation
-- async, reconnect-capable networking
-- no shared memory across processes
-
-## Folder Structure
-```text
-.
-|-- exchange_server.py
-|-- market_data_server.py
-|-- message_schemas.py
-|-- bot_client.py
-|-- bot_strategies.py
-|-- bot_battle_runner.py
-|-- bots_config.json
-|-- monitor_client.py
-|-- exporter.py
-|-- README.md
-|-- ARCHITECTURE.md
-|-- API_SPEC.md
-|-- BOT_INTEGRATION_GUIDE.md
-|-- SYSTEM_DESIGN.md
-`-- DEMO_GUIDE.md
-```
+MIT (`LICENSE`)
