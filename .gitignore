@@ -1,0 +1,39 @@
+# Virtual env
+.venv/
+uv-cache/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Env files
+.env
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test cache
+.pytest_cache/
+
+# Runtime data
+performance.csv
+trades.csv
+bots_config.json
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual env
+.venv/
+uv-cache/
+
+# OS
+.DS_Store
+Thumbs.db

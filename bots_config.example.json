@@ -1,0 +1,37 @@
+{
+  "market_data_uri": "ws://127.0.0.1:9010",
+  "order_gateway_uri": "ws://127.0.0.1:9001",
+  "bots": [
+    {
+      "trader_id": "maker_1",
+      "strategy": "maker",
+      "seed": 11,
+      "decision_interval": 0.6,
+      "strategy_params": {
+        "qty": "2",
+        "tick": "0.05"
+      }
+    },
+    {
+      "trader_id": "taker_1",
+      "strategy": "taker",
+      "seed": 22,
+      "decision_interval": 0.5,
+      "strategy_params": {
+        "qty": "3",
+        "market_prob": "0.8"
+      }
+    },
+    {
+      "trader_id": "rnd_1",
+      "strategy": "random",
+      "seed": 33,
+      "decision_interval": 0.7,
+      "strategy_params": {
+        "min_qty": "1",
+        "max_qty": "4",
+        "market_prob": "0.2"
+      }
+    }
+  ]
+}
