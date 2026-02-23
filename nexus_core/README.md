@@ -8,7 +8,7 @@ Nexus follows a **"Log-Then-Act" Disruptor Pipeline** model:
 - **Zero-Copy IPC**: Components communicate over single-producer single-consumer (SPSC) shared memory ring buffers. No internal TCP overhead.
 - **Binary Wire Protocol**: All messages use Simple Binary Encoding (SBE) with packed C-structs (`#[repr(C, packed)]`) for zero-allocation parsing.
 - **Deterministic State Machine**: Every input is sequenced and fully deterministic.
-- **Memory-Mapped WAL**: The **Sentinel** provides persistence using an mmap-backed Write-Ahead Log, bypassing syscall overhead on the hot path.
+- **Memory-Mapped WAL**: Provides persistence using an mmap-backed Write-Ahead Log, bypassing syscall overhead on the hot path.
 - **Fixed-Point Math**: IEEE 754 floats are banned. All prices and quantities use exact `i64`/`u32` integer arithmetic scaled to 8 decimal places.
 
 ---
@@ -32,4 +32,4 @@ Nexus follows a **"Log-Then-Act" Disruptor Pipeline** model:
 - [ ] **`main.rs` (Wiring & CPU Pinning)**: The process bootstrapping to allocate ring buffers and pin threads to isolated CPU cores.
 
 ---
-*This document tracks the incremental rewrite of the OpenSim engine as outlined in [`NEXUS_ARCH.md`](../docs/research/NEXUS_ARCH.md).*
+*This document tracks the incremental rewrite of the OpenSim engine as outlined in [`NEXUS_ARCH.md`](NEXUS_ARCH.md).*
