@@ -18,9 +18,9 @@ Nexus follows a **"Log-Then-Act" Disruptor Pipeline** model:
 ### 🟢 Implemented Modules (Done)
 - [x] **`types::fixed_point`**: Core math library. `Price` and `Quantity` wrappers with zero heap allocations and operator overloading for financial precision.
 - [x] **`wire::messages`**: Binary serialization structs including `MessageHeader`, `NewOrder`, `OrderCancel`, and `TradeUpdate`.
-- [x] **`persistence::sentinel`**: The memory-mapped Write-Ahead Log capable of writing entries in ~50ns and handling complete deterministic crash recovery.
+- [x] **`persistence::`**: The memory-mapped Write-Ahead Log capable of writing entries in ~50ns and handling complete deterministic crash recovery.
 - [x] **`matching::orderbook`**: The $O(1)$ limit order book backed by a `BTreeMap<i64, VecDeque<Order>>`.
-- [x] **`risk::guardian`**: The Pre-Trade Risk Gate managing user balances, fat-finger prevention, margin locks, and the Kill Switch.
+- [x] **`risk::`**: The Pre-Trade Risk Gate managing user balances, fat-finger prevention, margin locks, and the Kill Switch.
 
 ### 🟡 In Progress / Next Up
 - [ ] **`matching::engine`**: The central loop connecting the Pre-Trade Guardian with the Limit Order Book.
